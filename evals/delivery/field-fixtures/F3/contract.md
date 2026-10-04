@@ -1,0 +1,4 @@
+All data is fictional and allowed for AI use. Use CommonJS and Node built-ins.
+client.create(key,payload) may commit before throwing an error with code TIMEOUT. Other create errors propagate unchanged. A create success returns {id}.
+client.lookup(key) returns {status:"found",id} (positive evidence), {status:"absent",authoritative:true} (linearizable absence after all previous writes settle), or {status:"absent",authoritative:false} (stale cache). Lookup can also throw.
+After the initial create times out, reconcile with lookup. Found means confirmed. Only authoritative absence permits one further create with the identical key and payload. Stale absence or lookup failure means {status:"unknown"}; do not create again. A second timeout also means unknown, with no more attempts. Successful writes return {status:"confirmed",id}. Never log payload contents.

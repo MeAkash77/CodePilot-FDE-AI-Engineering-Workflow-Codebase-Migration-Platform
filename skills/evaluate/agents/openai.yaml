@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evaluate AI"
+  short_description: "Measure AI workflow behavior and failure modes"
+  default_prompt: "Use $evaluate to evaluate this AI workflow using representative cases."

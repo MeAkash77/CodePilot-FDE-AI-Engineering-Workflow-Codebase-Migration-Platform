@@ -1,0 +1,4 @@
+interface:
+  display_name: "Engagement Dashboard"
+  short_description: "Review status across existing engagement records"
+  default_prompt: "Use $dashboard to review the portfolio using available engagement records."

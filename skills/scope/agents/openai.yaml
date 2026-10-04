@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scope"
+  short_description: "Assess new requests against agreed commitments"
+  default_prompt: "Use $scope to assess this request against the agreed scope."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Delivery Options"
+  short_description: "Compare feasible approaches to a customer problem"
+  default_prompt: "Use $options to compare feasible approaches and recommend a delivery path."

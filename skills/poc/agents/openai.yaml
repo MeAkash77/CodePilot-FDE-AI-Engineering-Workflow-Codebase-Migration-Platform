@@ -1,0 +1,4 @@
+interface:
+  display_name: "Proof of Concept"
+  short_description: "Test a delivery uncertainty with a bounded pilot"
+  default_prompt: "Use $poc to design a bounded proof of concept for this uncertainty."

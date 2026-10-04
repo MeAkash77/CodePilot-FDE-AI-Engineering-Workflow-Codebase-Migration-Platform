@@ -1,0 +1,4 @@
+interface:
+  display_name: "Delivery Plan"
+  short_description: "Sequence delivery into verifiable increments"
+  default_prompt: "Use $plan to turn this agreed outcome into a sequenced delivery plan."

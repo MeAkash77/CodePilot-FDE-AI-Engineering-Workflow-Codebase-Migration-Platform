@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Review"
+  short_description: "Review a change for delivery and operational risks"
+  default_prompt: "Use $review to review this change against its outcome and operational risks."

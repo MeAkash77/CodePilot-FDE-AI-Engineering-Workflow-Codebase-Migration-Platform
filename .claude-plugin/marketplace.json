@@ -1,0 +1,18 @@
+{
+  "name": "fdeops",
+  "owner": {
+    "name": "Subash Natarajan",
+    "url": "https://github.com/suboss87"
+  },
+  "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity.",
+  "metadata": {
+    "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity."
+  },
+  "plugins": [
+    {
+      "name": "fdeops",
+      "source": "./",
+      "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity."
+    }
+  ]
+}

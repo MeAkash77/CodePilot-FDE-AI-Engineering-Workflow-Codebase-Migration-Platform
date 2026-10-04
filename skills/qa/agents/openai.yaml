@@ -1,0 +1,4 @@
+interface:
+  display_name: "Journey QA"
+  short_description: "Verify the real customer journey and its results"
+  default_prompt: "Use $qa to exercise the changed customer journey and report evidence."

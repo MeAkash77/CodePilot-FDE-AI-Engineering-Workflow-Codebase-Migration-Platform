@@ -1,0 +1,4 @@
+interface:
+  display_name: "Demo Prep"
+  short_description: "Rehearse an evidenced demo with a fallback"
+  default_prompt: "Use $demo-prep to prepare a customer demo and its failure fallback."

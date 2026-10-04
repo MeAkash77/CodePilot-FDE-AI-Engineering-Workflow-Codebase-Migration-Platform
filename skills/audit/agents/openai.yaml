@@ -1,0 +1,4 @@
+interface:
+  display_name: "Engagement Audit"
+  short_description: "Check inherited claims against delivery evidence"
+  default_prompt: "Use $audit to audit this inherited engagement and its risks."

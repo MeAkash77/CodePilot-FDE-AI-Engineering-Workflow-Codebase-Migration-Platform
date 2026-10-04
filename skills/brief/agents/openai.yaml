@@ -1,0 +1,4 @@
+interface:
+  display_name: "Customer Brief"
+  short_description: "Clarify the outcome, constraints, and evidence"
+  default_prompt: "Use $brief to clarify this customer brief and its open questions."

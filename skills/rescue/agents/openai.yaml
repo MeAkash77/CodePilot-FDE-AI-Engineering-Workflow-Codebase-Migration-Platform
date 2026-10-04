@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rescue"
+  short_description: "Triage urgent delivery and engagement failures"
+  default_prompt: "Use $rescue to triage this failing engagement and identify recovery steps."

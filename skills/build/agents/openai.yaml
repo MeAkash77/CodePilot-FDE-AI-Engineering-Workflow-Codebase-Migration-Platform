@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build"
+  short_description: "Implement and verify an agreed software change"
+  default_prompt: "Use $build to implement this scoped change and verify the agreed behavior."

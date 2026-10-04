@@ -1,0 +1,54 @@
+{
+  "description": "Illustrative insurance KYC engagement with a healthcare customer switch. Local review-logic tests use synthetic extracted fields; no model, patient records or customer system accessed.",
+  "scenes": [
+    {
+      "customer": "Insurance / KYC",
+      "label": "Workshop",
+      "prompt": "@fde Insurer workshop: Ops wants faster ID checks. Compliance must approve every case.",
+      "answer": "Agreed: AI prepares the document review; Compliance makes the decision. First, measure the time reviewers spend.",
+      "hold_ms": 5500
+    },
+    {
+      "customer": "Insurance / KYC",
+      "label": "Scope",
+      "prompt": "Their CTO approved the internal model. Start with synthetic IDs and the existing review screen.",
+      "answer": "First build: extract ID fields, flag missing or conflicting details, and prepare a review. No automatic customer approval.",
+      "hold_ms": 5500
+    },
+    {
+      "customer": "Insurance / KYC",
+      "label": "Build",
+      "prompt": "Build the review step. Keep it inside their current system.",
+      "answer": "Added kyc-review.js: turns extracted fields into a reviewer summary. Missing or conflicting details get flagged. Tests are next.",
+      "hold_ms": 5500
+    },
+    {
+      "customer": "Healthcare / Intake",
+      "label": "Switch customer",
+      "prompt": "@fde Save this. Healthcare client call now: IT has not approved access to patient records.",
+      "answer": "KYC saved: review step built; tests next. Healthcare: use synthetic intake forms. Ask IT who owns access approval and when.",
+      "hold_ms": 5500
+    },
+    {
+      "customer": "Insurance / KYC",
+      "label": "Resume and test",
+      "prompt": "@fde Back to insurance. Pick up the tests.",
+      "answer": "Resumed from the saved step. 6/6 local checks pass: complete, missing, unreadable and conflicting fields. Every case still needs a reviewer.",
+      "hold_ms": 5500
+    },
+    {
+      "customer": "Insurance / KYC",
+      "label": "Rollout decision",
+      "prompt": "Can Ops start using it?",
+      "answer": "Not yet. Test their model and review screen with approved samples. Compliance signs off before a pilot with one team.",
+      "hold_ms": 5500
+    },
+    {
+      "customer": "Insurance / KYC",
+      "label": "Handover preparation",
+      "prompt": "Prepare the handover for Ops and IT.",
+      "answer": "Draft ready: reviewer steps, support owner and manual fallback. Next: customer testing, then compare review time with the baseline.",
+      "hold_ms": 5500
+    }
+  ]
+}

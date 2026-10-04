@@ -1,0 +1,4 @@
+interface:
+  display_name: "Earn Trust"
+  short_description: "Plan credible next steps and appropriate access"
+  default_prompt: "Use $earn-trust to plan how to earn trust and appropriate customer access."

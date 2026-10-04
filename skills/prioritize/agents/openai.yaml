@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prioritize"
+  short_description: "Choose immediate priorities and explicit deferrals"
+  default_prompt: "Use $prioritize to choose the immediate priorities from this competing work."

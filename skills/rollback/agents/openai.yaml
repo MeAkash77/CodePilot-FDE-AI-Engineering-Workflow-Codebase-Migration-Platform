@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rollback"
+  short_description: "Rehearse recovery and expose remaining gaps"
+  default_prompt: "Use $rollback to prepare a recovery drill within the permitted environment."

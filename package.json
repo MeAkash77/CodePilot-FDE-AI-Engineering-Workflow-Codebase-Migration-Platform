@@ -1,0 +1,64 @@
+{
+  "name": "fdeops",
+  "version": "5.1.22",
+  "description": "Skills for forward deployed engineers across strategy, architecture and engineering. Use individual tasks or @fde coordination; local customer memory supports continuity.",
+  "bin": {
+    "fdeops": "bin/install.js",
+    "fde": "bin/fde.js"
+  },
+  "scripts": {
+    "check": "node bin/check.js && npm test",
+    "test": "node --test test/*.test.js",
+    "test:skill-routing": "node evals/skill-routing/check.js && node evals/skill-routing/live-smoke.js",
+    "prepublishOnly": "node bin/check.js && npm test",
+    "generate:skills": "node bin/generate-skills.js && node bin/catalog-doc.js"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "hooks/",
+    "templates/",
+    "adapters/",
+    "mcp/",
+    "CLAUDE.md.template",
+    "AGENTS.md",
+    "plugin.json",
+    "mcp.json"
+  ],
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "ai-agent",
+    "skills",
+    "plugin",
+    "engagement-memory",
+    "agent-memory",
+    "client-context",
+    "fde",
+    "forward-deployed",
+    "forward-deployed-engineer",
+    "engineering",
+    "client-site",
+    "legacy-code",
+    "brownfield",
+    "cursor",
+    "windsurf",
+    "cline",
+    "codex",
+    "gemini-cli",
+    "copilot",
+    "agents-md",
+    "ollama",
+    "local-llm",
+    "lm-studio"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suboss87/fdeops.git"
+  },
+  "author": "Subash Natarajan <suboss87@gmail.com> (https://github.com/suboss87)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

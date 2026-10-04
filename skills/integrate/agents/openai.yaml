@@ -1,0 +1,4 @@
+interface:
+  display_name: "Integrate"
+  short_description: "Prove system connections and failure handling"
+  default_prompt: "Use $integrate to implement this integration and verify its downstream result."

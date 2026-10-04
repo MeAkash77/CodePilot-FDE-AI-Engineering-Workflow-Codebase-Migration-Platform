@@ -1,0 +1,4 @@
+interface:
+  display_name: "Field Feedback"
+  short_description: "Assess field lessons for safe and useful reuse"
+  default_prompt: "Use $feedback to assess this field lesson for reuse or product feedback."

@@ -1,0 +1,136 @@
+# fdeops Engagement Schema v1
+
+Open layout for engagement memory. **Default path:** `~/fde-engagements/<name>/.fde/` (create + bind with `fde resume --init <name>` from the client workspace). Private to the engineer - not in shared git by default.
+
+Optional: `./.fde/` in a workspace only if the engagement allows it and it is gitignored.
+
+## Staging (`.inbox/`)
+
+Beside each engagement folder, **`~/fde-engagements/<name>/.inbox/`** holds raw pulls from external sources (transcripts, emails, exports). Staged by `fde ingest stage`; **not** part of the memory git ledger and **not** the system of record.
+
+| Path | Purpose | Written by |
+|------|---------|------------|
+| `.inbox/<staged-files>` | Raw artifacts before review | `fde ingest stage` (agent fetches via user-configured source MCPs) |
+
+After confirm, `fde ingest apply` writes thin dated facts into `.fde/` (same routing as `fde debrief --apply`). Raw files remain in `.inbox/` for audit. Optional `via:<source>` provenance on applied lines. NDA surface - same home-tree privacy rules as `.fde/`.
+
+## Core files (start here)
+
+| File | Purpose | Written by |
+|------|---------|------------|
+| `context.md` | Compact state; loaded every session; dated debrief blocks | every stage + the `session-stop` hook (auto-capture) + `fde debrief` |
+| `brief.md` | Stated problem (hypothesis) | land |
+| `assumptions.md` | Brief claims under test: Kind FACT / CONVENTION / UNKNOWN; OPEN / CONFIRMED / DISPROVED | land (seed), test-assumptions, discover |
+| `success.md` | Definition of done + primary value bucket + out of scope | land |
+| `stakeholders.md` | Champions, resistance, `[signal:green\|amber\|red]` trust tokens | land (updated continuously), `fde log contact --signal`, `fde debrief` |
+| `trust-profile.md` | Sacred data, AI policy (`<private>` tags) | land, overlays |
+
+## Discovery and delivery
+
+| File | Purpose | Written by |
+|------|---------|------------|
+| `reality.md` | Actual problem vs brief | discover |
+| `terrain.md` | Codebase map, hotspots, test gaps, exception-led operating map (doctor requires ≥1 row from plan+) | discover, audit |
+| `decisions.md` | Plan + kill list + technical choices + reviews | plan, pick-three, ship, review, `fde debrief` |
+| `risks.md` | Live risk register | plan, ship, rescue, `fde debrief` |
+| `delivery.md` | Value ledger (bucket → promised → measured → accepted by → evidence) + ship receipts + status memos | ship, status, close, `fde debrief` |
+
+### Delivery acceptance
+
+`Accepted by` records a customer-side name and date. Denials, pending requests,
+questions, and bare words such as `approved` do not identify acceptance.
+Legacy name-only rows remain readable; they record an assertion, not verified consent.
+
+Acceptance cells must put the customer-side name first (for example, `Priya Shah, approved 2026-09-10`). Approval prose such as `approved 2026-09-10`, or a generic role such as `customer sponsor`, does not identify a signer and remains claimed.
+
+For an explicit record, add an `Acceptance status` column to the value ledger:
+`pending`, `accepted`, `rejected`, or `revoked`. Only `accepted`, together with a
+signer, a measurement, and nonempty `Evidence`, is displayed as accepted. Empty or
+unrecognized statuses stay claimed. Keep the source, date, and scope in `Evidence`;
+the CLI checks recorded fields, not the authenticity of the customer's consent.
+A later rejection or revocation must update the row's status.
+
+### Decision entries
+
+In a debrief REVIEW, an approval-looking stamp without a source remains CLAIM.
+An explicitly uncertain signer such as `signer: pending` stays in the notes;
+it must not populate the sign-off field. Review and confirm a named authority
+before recording it. A named authority is not customer acceptance.
+
+`fde log decision "<text>"` appends a dated one-liner, which is enough for most
+choices. Optional `[approved: Name YYYY-MM-DD]` on that line is the only customer-yes
+the CLI treats as approval; without it, Monday's RECORD prints `(unconfirmed)`. Do not infer
+approval from "agreed" or a name in the prose. When the reasoning is the part that has to survive the engagement,
+write the long form under `## Decision log` instead:
+
+```markdown
+### [2026-08-27] Keep the existing Stripe connector
+- Context: what prompted this decision
+- Options considered: what was on the table
+- Decision: what was chosen
+- Rationale: why this over the alternatives
+- Owner: who approved (customer-side name)
+- Source: meeting date, PR, URL, transcript ID, or artifact path (never infer it)
+```
+
+The rationale is the line a successor cannot reconstruct from the code.
+
+## Incidents and handoff
+
+| File | Purpose | Written by |
+|------|---------|------------|
+| `chaos-log.md` | Incidents, root cause | rescue |
+| `handoff.md` | Team takeover knowledge | close |
+| `patterns.md` | Reusable patterns | close |
+| `audit.md` | Mid-engagement: real vs assumed | audit |
+| `retrospectives/YYYY-MM-DD-name.md` | Per engagement close | close |
+
+## Optional
+
+| File | Purpose |
+|------|---------|
+| `business-case.md` | Scored use case / pitch (poc) |
+| `prototype-log.md` | Prototype learnings (poc) |
+| `evals.md` | AI-touching eval pack: goldens, failure modes, SHIP/NO-SHIP, HITL (not required for non-AI) |
+
+## Rules
+
+1. **`<private>...</private>`** - redacted from CLI, dashboard, and hook-injected context. Nothing inside a block is ever routed into `decisions.md`/`risks.md`/`delivery.md`/`stakeholders.md`; `fde debrief`/`fde ingest` seal it verbatim into `context.md` instead, and hold it out of the agent-facing `.debrief-propose` in an owner-only (`0600`) `.debrief-private` sidecar that only `--apply` reads; a `.debrief-seal` receipt records how many blocks were sealed, so `--apply` refuses rather than silently dropping one if the sidecar disappears. Do not load raw blocks into the model via file tools or paste.
+2. Stages load files **on demand**, not the whole directory.
+3. **Do not** mix two customers in one `.fde/`.
+4. **Deliverable = memory:** `--init` creates only the core files; stage artifacts (`audit.md`, `chaos-log.md`, `handoff.md`, `evals.md`, …) are created by their stages when they run - formats live in [skills/fde/references/](../skills/fde/references/).
+5. Every claim carries its evidence: `(ops lead, Day 5)` · `(churn: 47/90d)` · `(stated, unverified)`.
+6. **Trust signals are tokens:** the latest dated `[signal:green|amber|red]` in `stakeholders.md` drives `fde status` / `fde dashboard`; tokens older than 21 days show as stale. With no token, prose keywords can still raise amber/red, but nothing reads `green` - an engagement nobody has asked reads `new`.
+7. **Assumptions are not receipts:** `assumptions.md` and `brief.md` are claims. `fde receipts` labels them separately from source-backed records; a log date alone does not promote a claim.
+8. **Plans need a kill list; deliveries need a value ledger.** No finished plan without Now/Next/Later/Kill. No ship without bucket + promised → measured → evidence (measured may be pending). AI-touching ships also need an eval receipt (`evals.md` or Ship receipts); non-AI ships leave eval as `n/a`.
+
+Scaffold: `fde resume --init <engagement-name>` (creates the folder AND binds the current workspace to it).
+
+Optional root: `FDEOPS_ENGAGEMENTS_ROOT` relocates the engagements tree used by init, registry, status, and dashboard (see [install.md](./install.md)).
+
+## Sources and portable readouts
+
+From 3.27, accepted value requires a measured result, named signer, and non-pending source in Evidence. Explicit Acceptance status, when present, must be `accepted`. Legacy rows without a source display as CLAIM; files are never rewritten during this classification. A source is inspectable attribution, not automatic verification or customer approval. `PR #42`, `https://…`, `transcript:abc123`, `evidence/replay.json`, and `[source: meeting 2026-09-10]` are supported. `staging run`, `pending PR #42`, and the automatic entry date are insufficient.
+
+`fde defend` prints the sponsor readout. `fde handoff` prints a portable Markdown snapshot with constraints, signer, success, next action, risks, ledger, recent dated decisions and gaps. Both default to 16 KiB of redacted output; `--max-bytes 4096..65536` changes this deterministic byte allowance, not a model token count. Truncation is explicit. `fde handoff --out successor.md` creates a new file only, outside `.fde/`; it refuses existing destinations. Review remaining client information and source access before sharing. These exports are derived snapshots, not replacements for the engagement record.
+
+## Implementation checkpoint (optional)
+
+For substantial work, keep the implementation plan and progress in the existing project task record. A bound engagement may hold a short confirmed summary under an unindented `## Implementation checkpoint` heading in `context.md`. Keep record section headings unindented; headings inside code or lists are content. Put the next action and source task path/ID first, followed by repository/revision and dirty state, completed and pending checks, blocker and update time. Replace the previous checkpoint or close it when work finishes; do not copy a second backlog.
+
+`fde resume` gives this section its own bounded, sanitized excerpt so session history does not bury it. It never opens the source path automatically. The pre-compact hook leaves the saved section intact; it cannot infer unsaved progress. A fresh agent must reconcile the summary with the authorized task record, working tree and applicable evidence before continuing. Missing or stale checkpoints remain gaps, not proof of completion.
+
+## Open follow-through
+
+Optional sections in `context.md` keep commitments and questions visible in `resume` and `prep` without a separate task system:
+
+```markdown
+## Commitments
+- [ ] Delivery lead owes the operations team a runbook; due: 2026-10-02; source: workshop 2026-09-28
+## Open questions
+- [ ] Who accepts the staging replay? source: workshop 2026-09-28
+```
+
+Check an item `[x]` when its resolution is confirmed. Update the existing item when an agreed date changes; retain the dated decision as its source. Only explicit due/review dates are flagged as past date. The output is a bounded list of recorded open items, not proof that every obligation was captured.
+
+`recall` also searches `patterns.md` and up to 100 newest dated `retrospectives/YYYY-MM-DD-*.md` files in this engagement. Linked files and linked retrospective directories are excluded. Lessons remain historical evidence; confirm their applicability before reuse.

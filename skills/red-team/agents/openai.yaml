@@ -1,0 +1,4 @@
+interface:
+  display_name: "Red Team"
+  short_description: "Challenge a plan with evidence and failure modes"
+  default_prompt: "Use $red-team to stress-test this plan and identify corrective actions."

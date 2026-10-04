@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sponsor Readout"
+  short_description: "Separate promises, measured results, and acceptance"
+  default_prompt: "Use $readout to prepare a sponsor readout from the delivery evidence."

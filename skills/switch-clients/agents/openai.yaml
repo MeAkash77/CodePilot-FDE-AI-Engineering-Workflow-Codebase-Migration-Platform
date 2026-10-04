@@ -1,0 +1,4 @@
+interface:
+  display_name: "Switch Clients"
+  short_description: "Refresh customer context and triage competing needs"
+  default_prompt: "Use $switch-clients to switch to the requested engagement and refresh its context."

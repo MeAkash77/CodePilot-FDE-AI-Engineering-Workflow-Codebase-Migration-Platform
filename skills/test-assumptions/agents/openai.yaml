@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Assumptions"
+  short_description: "Find consequential assumptions and test them"
+  default_prompt: "Use $test-assumptions to identify and test the assumptions behind this proposal."

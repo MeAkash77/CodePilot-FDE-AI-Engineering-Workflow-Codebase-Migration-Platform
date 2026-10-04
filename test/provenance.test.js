@@ -1,0 +1,184 @@
+const test = require('node:test')
+const assert = require('node:assert/strict')
+const fs = require('node:fs')
+const os = require('node:os')
+const path = require('node:path')
+const { spawnSync } = require('node:child_process')
+const { sourceReference } = require('../bin/lib/provenance')
+const { valueState } = require('../bin/lib/value-ledger')
+function fixture(t) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fde-source-'))
+  const eng = path.join(root, '.fde'); fs.mkdirSync(eng)
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }))
+  const run = args => spawnSync(process.execPath, [path.join(__dirname, '../bin/fde.js'), ...args], { cwd: root, env: { ...process.env, HOME: root, FDEOPS_ENGAGEMENT: eng, FDEOPS_ENGAGEMENTS_ROOT: root }, encoding: 'utf8' })
+  return { root, eng, run }
+}
+test('explicit source syntax excludes automatic dates and placeholders', () => {
+  for (const text of ['[2026-09-10] approved by Mara', 'staging run', '[source: pending]', '[source: none]']) assert.equal(sourceReference(text), '')
+  for (const text of ['[source: meeting 2026-09-10]', 'PR #42', 'https://example.test/proof', 'evidence/replay.json', 'email 2026-09-10']) assert.ok(sourceReference(text), text)
+})
+test('legacy and explicit acceptance both remain claimed without source-backed evidence', () => {
+  for (const extra of [{}, { acceptanceStatus: 'accepted' }]) {
+    const row = { measured: '5 min', accepted: 'Mara Chen', ...extra }
+    for (const evidence of ['', 'staging run', 'pending', 'pending PR #42', 'unknown https://example.test/proof', 'no evidence: PR #42 was never run']) assert.equal(valueState({ ...row, evidence }), 'claimed')
+    assert.equal(valueState({ ...row, evidence: 'PR #42' }), 'accepted')
+  }
+})
+test('receipts separate unsourced decisions from sourced records without implying approval', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'decisions.md'), '# Decisions\n- [2026-09-10] retry approved [approved: Mara 2026-09-10]\n- [2026-09-10] retry declined [source: meeting 2026-09-09]\n<private>retry SECRET_SOURCE https://secret.test</private>')
+  const r = f.run(['receipts', 'retry']); assert.equal(r.status, 0, r.stderr)
+  const claim = r.stdout.indexOf('CLAIMS')
+  assert.ok(claim > 0); assert.ok(r.stdout.indexOf('retry approved') > claim)
+  assert.ok(r.stdout.indexOf('retry declined') < claim)
+  assert.match(r.stdout, /not.*approval|not.*acceptance/i)
+  assert.doesNotMatch(r.stdout, /SECRET_SOURCE|secret.test/)
+})
+test('handoff and defend are bounded redacted snapshots, never approval inference', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'success.md'), '# Success\n**Stakeholder who signs off:** Mara Chen\n**Done when:** replay input returns the expected output.\n<private>SECRET_HANDOFF</private>')
+  fs.writeFileSync(path.join(f.eng, 'decisions.md'), '# Decisions\n- [2026-09-10] retry approved\n- [2026-09-10] retry declined [source: meeting 2026-09-09]\n')
+  fs.writeFileSync(path.join(f.eng, 'delivery.md'), '# Delivery\n## Value ledger\n| Slice | Promised | Measured | Accepted by | Evidence |\n|---|---|---|---|---|\n| replay | 5 min | 4 min | Mara | PR #42 |\n| speed | 5 min | 3 min | Mara | none |\n')
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n## Next action\nAsk Mara to review replay.\n## History\n' + 'fat raw notes '.repeat(100000))
+  const before = fs.readdirSync(f.eng).map(p => [p, fs.readFileSync(path.join(f.eng, p), 'utf8')])
+  for (const cmd of ['handoff', 'defend']) {
+    const r = f.run([cmd, '--max-bytes', '4096']); assert.equal(r.status, 0, r.stderr)
+    assert.ok(Buffer.byteLength(r.stdout) <= 4096); assert.doesNotMatch(r.stdout, /SECRET_HANDOFF|fat raw notes/)
+    assert.match(r.stdout, /Mara Chen|Signer:/); assert.match(r.stdout, /CLAIMS/)
+    assert.match(r.stdout, /source supplied, not automatic approval/)
+  }
+  assert.deepEqual(fs.readdirSync(f.eng).map(p => [p, fs.readFileSync(path.join(f.eng, p), 'utf8')]), before)
+})
+test('handoff export is explicit, new-file-only and cannot replace private records through links', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'success.md'), '# Success\n')
+  const dest = path.join(f.root, 'handoff.md')
+  assert.equal(f.run(['handoff', '--out', dest]).status, 0)
+  const content = fs.readFileSync(dest, 'utf8')
+  assert.notEqual(f.run(['handoff', '--out', dest]).status, 0)
+  assert.equal(fs.readFileSync(dest, 'utf8'), content)
+  fs.symlinkSync(dest, path.join(f.root, 'alias.md'))
+  assert.notEqual(f.run(['handoff', '--out', path.join(f.root, 'alias.md')]).status, 0)
+  fs.symlinkSync(f.eng, path.join(f.root, 'records'))
+  assert.notEqual(f.run(['handoff', '--out', path.join(f.root, 'records', 'new.md')]).status, 0)
+  assert.equal(fs.existsSync(path.join(f.eng, 'new.md')), false)
+  const other = path.join(f.root, 'other', '.fde'); fs.mkdirSync(other, { recursive: true })
+  assert.notEqual(f.run(['handoff', '--out', path.join(other, 'cross-client.md')]).status, 0)
+  assert.equal(fs.existsSync(path.join(other, 'cross-client.md')), false)
+})
+test('npx entry routes recall, defend and handoff to the CLI without installing', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n## Next action\nretry the sample\n')
+  for (const args of [['recall', 'retry'], ['defend'], ['handoff']]) {
+    const r = spawnSync(process.execPath, [path.join(__dirname, '../bin/install.js'), ...args], { cwd: f.root, env: { ...process.env, HOME: f.root, FDEOPS_ENGAGEMENT: f.eng, FDEOPS_ENGAGEMENTS_ROOT: f.root }, encoding: 'utf8' })
+    assert.equal(r.status, 0, r.stderr); assert.match(r.stdout, /retry/)
+    assert.equal(fs.existsSync(path.join(f.root, '.claude')), false)
+  }
+})
+test('doctor --ready checks success before phase transition without writing', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n**Phase:** discover\n## Next action\nDefine the check\n')
+  fs.writeFileSync(path.join(f.eng, 'success.md'), '# Success\n**Done when:** improve things\n')
+  const before = fs.readFileSync(path.join(f.eng, 'context.md'), 'utf8')
+  const r = f.run(['doctor', '--ready']); assert.notEqual(r.status, 0)
+  assert.match(r.stdout, /binary acceptance check/); assert.match(r.stdout, /named customer-side signer/)
+  assert.equal(fs.readFileSync(path.join(f.eng, 'context.md'), 'utf8'), before)
+})
+test('early handoff exposes missing acceptance criteria and names the limits of its ledger summary', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '# Context\n**Phase:** discover\n')
+  fs.writeFileSync(path.join(f.eng, 'success.md'), '# Success\n**Done when:** improve things\n**Stakeholder who signs off:** unconfirmed\n')
+  fs.writeFileSync(path.join(f.eng, 'delivery.md'), '# Delivery\n## Running value\nStaging replay took five minutes; production has not been measured.\n')
+  for (const command of ['defend', 'handoff']) {
+    const result = f.run([command])
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(result.stdout, /binary acceptance check/)
+    assert.match(result.stdout, /named customer-side signer/)
+    assert.match(result.stdout, /Only structured value-ledger rows are summarized/)
+    assert.match(result.stdout, /review other notes in delivery\.md/)
+  }
+})
+test('handoff retains long-form decision sources and orders recent decisions by date', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'decisions.md'), '# Decisions\n### [2026-09-10] Keep the connector\n- Rationale: preserve the tested path\n- Source: [source: meeting 2026-09-09]\n<private>PRIVATE_LONGFORM</private>\n## 2026-09-08 - Reject the rewrite\n- Source: PR #42\n- [2026-01-01] Earlier unsupported idea\n')
+  for (const command of ['resume', 'handoff']) {
+    const r = f.run([command]); assert.equal(r.status, 0, r.stderr)
+    assert.match(r.stdout, /Keep the connector/); assert.match(r.stdout, /meeting 2026-09-09/)
+    assert.doesNotMatch(r.stdout, /PRIVATE_LONGFORM/)
+  }
+  const receipt = f.run(['receipts', 'Keep the connector'])
+  assert.match(receipt.stdout, /ON RECORD/); assert.match(receipt.stdout, /meeting 2026-09-09/)
+  const entries = require('../bin/lib/provenance').datedDecisions(fs.readFileSync(path.join(f.eng, 'decisions.md'), 'utf8'))
+  assert.deepEqual(entries.map(e => e.date), ['2026-01-01', '2026-09-08', '2026-09-10'])
+})
+
+
+test('short receipts retain original and correction sources for one decision', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'decisions.md'), '- [2026-09-15] Approval withdrawn ' + 'context '.repeat(35) + '[source: meeting:0910] [source: meeting:0914]\n')
+  const r = f.run(['receipts', 'withdrawn'])
+  assert.equal(r.status, 0, r.stderr)
+  assert.match(r.stdout, /sources: meeting:0910; meeting:0914/)
+})
+
+test('receipts omit untouched scaffold but retain real statements and redacted line numbers', t => {
+  const f = fixture(t)
+  const template = fs.readFileSync(path.join(__dirname, '../templates/.fde/delivery.md'), 'utf8')
+  fs.writeFileSync(path.join(f.eng, 'delivery.md'), template + '\n- Acceptance is not yet confirmed.\n- Accepted by Mara [source: meeting:scope]\n')
+  const r = f.run(['receipts', 'accepted'])
+  assert.equal(r.status, 0, r.stderr)
+  assert.match(r.stdout, /Accepted by Mara/)
+  assert.doesNotMatch(r.stdout, /a customer-side name|\| Accepted by \|/)
+  assert.match(f.run(['receipts', 'Acceptance']).stdout, /Acceptance is not yet confirmed/)
+})
+
+
+test('receipt attribution clipping preserves Unicode and never leaves partial masking aliases', t => {
+  const f = fixture(t)
+  for (const source of ['A'.repeat(239) + '🙂' + 'B'.repeat(120), 'A'.repeat(230) + ' person@example.test ' + 'B'.repeat(120)]) {
+    fs.writeFileSync(path.join(f.eng, 'decisions.md'), '- [2026-09-15] Correction [source: ' + source + ']\n')
+    const r = f.run(['receipts', 'Correction'])
+    assert.equal(r.status, 0, r.stderr)
+    assert.match(r.stdout, /sources truncated/)
+    assert.doesNotMatch(r.stdout, /\uFFFD|person@example\.test/)
+    assert.doesNotMatch(r.stdout.replace(/\[\[(?:email|phone|identifier|credential|term):[a-f0-9]{16}\]\]/g, ''), /\[\[/)
+  }
+})
+
+test('agreement lookup retains the decision maker, rationale and status beside a matching heading', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'decisions.md'), '# Decisions\n## 2026-09-17 - Keep CSV upload\nDecided by: Mara, scope owner\nReason: ERP access is unavailable\nStatus: agreed implementation scope; delivered result not accepted\nSource: [source: meeting:scope-0917]\n<private>PRIVATE_AGREEMENT</private>\n')
+  const r = f.run(['receipts', 'CSV'])
+  assert.equal(r.status, 0, r.stderr)
+  for (const text of ['2026-09-17', 'Mara, scope owner', 'ERP access is unavailable', 'delivered result not accepted', 'meeting:scope-0917']) assert.ok(r.stdout.includes(text), text)
+  assert.doesNotMatch(r.stdout, /PRIVATE_AGREEMENT/)
+})
+
+test('agreement lookup shows a later withdrawal and does not upgrade unsupported notes', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'decisions.md'), '## 2026-09-01 - ERP rollout\nDecided by: Mara\nStatus: approved\n[source: meeting:initial]\n## 2026-09-17 - ERP rollout\nDecided by: Mara\nStatus: approval withdrawn pending access review\n[source: meeting:withdrawal]\n')
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '- Sales thinks ERP was promised.\n')
+  const out = f.run(['receipts', 'ERP']).stdout
+  assert.match(out, /approval withdrawn/)
+  assert.match(out, /meeting:initial/)
+  assert.match(out, /meeting:withdrawal/)
+  assert.ok(out.indexOf('Sales thinks') > out.indexOf('CLAIMS'))
+})
+
+test('agreement lookup reports missing agreement evidence without asserting it never happened', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'context.md'), '- ERP requested by sales, not yet confirmed.\n')
+  const out = f.run(['receipts', 'ERP']).stdout
+  assert.match(out, /CLAIMS/)
+  assert.doesNotMatch(out, /ON RECORD/)
+  assert.match(out, /No source-backed record matched/)
+  assert.match(f.run(['receipts', 'unmentioned']).stdout, /gap in the record, not proof of absence/)
+})
+
+test('agreement lookup supports documented named decision and scope-change headings once per entry', t => {
+  const f = fixture(t)
+  fs.writeFileSync(path.join(f.eng, 'decisions.md'), '# Decisions\n## Decision: CSV bridge - 2026-09-01\nDecided by: Mara\nChosen: CSV while access is pending\n[source: meeting:bridge]\n## Scope change - 2026-09-17\nRequest: CSV replacement\nRequested by: Sales\nStatus: proposed, not agreed\n[source: meeting:request]\n')
+  const out = f.run(['receipts', 'CSV']).stdout
+  for (const text of ['Decided by: Mara', 'Status: proposed, not agreed', 'meeting:bridge', 'meeting:request']) assert.ok(out.includes(text), text)
+  assert.equal((out.match(/## Decision: CSV bridge/g) || []).length, 1)
+})

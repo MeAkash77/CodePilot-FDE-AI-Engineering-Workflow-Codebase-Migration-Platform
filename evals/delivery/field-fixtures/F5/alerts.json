@@ -1,0 +1,10 @@
+{
+  "service": "reconciliation-worker",
+  "environment": "staging",
+  "enabled": true,
+  "failureSignal": "reconciliation_job_failed",
+  "route": "staging-ops-test",
+  "responsibleOperator": "Devon",
+  "deliveryReceipts": [],
+  "acknowledgments": []
+}

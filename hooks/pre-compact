@@ -1,0 +1,112 @@
+#!/bin/bash
+# fdeops PreCompact - preserve engagement state before context compaction.
+# Resolves the engagement the same way as session-start/session-stop.
+
+resolve_engagement_dir() {
+  local raw="$1"
+  [ -z "$raw" ] && return 1
+  # strip surrounding whitespace/quotes only - paths may contain spaces
+  raw=$(printf '%s' "$raw" | sed -e 's/^[[:space:]"'"'"']*//' -e 's/[[:space:]"'"'"']*$//' -e "s|^~|$HOME|")
+  # Same forms bin/fde.js accepts: an absolute .fde, an absolute engagement
+  # folder, or a bare slug under the engagements root - keep the two in lockstep.
+  # Anything relative is refused: it would resolve against whatever directory
+  # the agent happened to start in.
+  case $raw in
+    /*)
+      [ -d "$raw/.fde" ] && printf '%s\n' "$raw/.fde" && return 0
+      [ -d "$raw" ] && printf '%s\n' "$raw" && return 0
+      return 1
+      ;;
+    */*|.*) return 1 ;;
+  esac
+  local root="${FDEOPS_ENGAGEMENTS_ROOT:-$HOME/fde-engagements}"
+  root="${root/#\~/$HOME}"
+  local slug
+  slug=$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9]\+/-/g' -e 's/^-//' -e 's/-$//')
+  [ -n "$slug" ] && [ -d "$root/$slug/.fde" ] && printf '%s\n' "$root/$slug/.fde" && return 0
+  return 1
+}
+
+# Workspace registry written by `fde resume --init` - mirrors resolveEngagement()
+# step 2 in bin/fde.js; keep the resolution order identical in bash and JS.
+# Lines are "<workspace-path> <slug>": the path may contain spaces, the slug
+# never does, so split on the LAST space (same as the JS lastIndexOf parse).
+registry_engagement_dir() {
+  # FDEOPS_ENGAGEMENTS_ROOT mirrors ENGAGEMENTS_ROOT in bin/fde.js - the CLI and
+  # hooks MUST agree on the root or an isolated setup gets split memory.
+  local root="${FDEOPS_ENGAGEMENTS_ROOT:-$HOME/fde-engagements}"
+  root="${root/#\~/$HOME}"
+  local reg="$root/.registry" slug
+  [ -f "$reg" ] || return 1
+  slug=$(awk 'BEGIN{ws=ENVIRON["PWD"]; best=-1}
+    { i = match($0, / [^ ]*$/)
+      if (i > 0) {
+        wpath = substr($0, 1, i - 1)
+        if (ws == wpath || index(ws, wpath "/") == 1) {
+          if (length(wpath) > best) { best = length(wpath); slug = substr($0, i + 1) }
+        }
+      } }
+    END { if (best >= 0) print slug }' "$reg" 2>/dev/null)
+  [ -z "$slug" ] && return 1
+  [ -d "$root/$slug/.fde" ] && printf '%s\n' "$root/$slug/.fde" && return 0
+  return 1
+}
+
+# Prefer PATH `fde`, then plugin/repo copies - same order as session-start.
+resolve_fde() {
+  if command -v fde >/dev/null 2>&1; then
+    printf '%s\n' "fde"
+    return 0
+  fi
+  for candidate in \
+    "${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/bin/fde.js}" \
+    "$(dirname "$0")/../bin/fde.js" \
+    "$HOME/.claude/fdeops/fde.js" \
+    "$HOME/.claude/plugins/fdeops/bin/fde.js"; do
+    if [ -n "$candidate" ] && [ -f "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+ENG_DIR=$(resolve_engagement_dir "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}")
+
+# An override that cannot be honored is never ignored: falling through to the
+# registry would write this session into whichever engagement the workspace is
+# bound to, and the operator named a different one. bin/fde.js refuses; so do we.
+if [ -z "$ENG_DIR" ] && [ -n "${FDEOPS_ENGAGEMENT:-${FDEOS_ENGAGEMENT:-}}" ]; then
+  exit 0
+fi
+
+if [ -z "$ENG_DIR" ]; then
+  ENG_DIR=$(registry_engagement_dir)
+fi
+
+if [ -z "$ENG_DIR" ] && [ -f "CLAUDE.md" ]; then
+  ENG=$(grep -m1 '^FDEOPS_ENGAGEMENT=\|^FDEOS_ENGAGEMENT=' CLAUDE.md 2>/dev/null | cut -d= -f2-)
+  ENG_DIR=$(resolve_engagement_dir "$ENG")
+fi
+
+if [ -z "$ENG_DIR" ] && [ -f "$HOME/.claude/FDEOPS-CLAUDE.md" ]; then
+  ENG=$(grep -m1 '^FDEOPS_ENGAGEMENT=\|^FDEOS_ENGAGEMENT=' "$HOME/.claude/FDEOPS-CLAUDE.md" 2>/dev/null | cut -d= -f2-)
+  ENG_DIR=$(resolve_engagement_dir "$ENG")
+fi
+
+if [ -z "$ENG_DIR" ] && [ -d ".fde" ]; then
+  ENG_DIR=".fde"
+fi
+
+[ -z "$ENG_DIR" ] && exit 0
+
+FDE_CMD=$(resolve_fde || true)
+if [ -n "$FDE_CMD" ]; then
+  if [ "$FDE_CMD" = "fde" ]; then
+    FDEOPS_ENGAGEMENT="$ENG_DIR" fde preserve >/dev/null 2>&1 || true
+  else
+    FDEOPS_ENGAGEMENT="$ENG_DIR" node "$FDE_CMD" preserve >/dev/null 2>&1 || true
+  fi
+fi
+
+exit 0

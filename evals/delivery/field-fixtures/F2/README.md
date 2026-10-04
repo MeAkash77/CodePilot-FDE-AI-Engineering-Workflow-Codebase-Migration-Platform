@@ -1,0 +1,1 @@
+Fictional permitted local fixture. Upstream can replay an event ID in one worker lifetime. apply is synchronous and throws on a failed attempt. State is intentionally in memory; production restart durability is outside this task. Existing test runner: node --test (Node built-ins only).

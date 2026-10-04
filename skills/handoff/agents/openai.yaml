@@ -1,0 +1,4 @@
+interface:
+  display_name: "Handoff"
+  short_description: "Transfer operation with evidence and clear ownership"
+  default_prompt: "Use $handoff to prepare an operating handoff with evidence and ownership."

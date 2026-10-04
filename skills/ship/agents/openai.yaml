@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship"
+  short_description: "Prepare a controlled release with recovery evidence"
+  default_prompt: "Use $ship to prepare this increment for an authorized release."
