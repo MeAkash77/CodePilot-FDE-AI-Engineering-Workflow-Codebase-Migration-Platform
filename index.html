@@ -1,117 +1,255 @@
-**CodePilot*.*FDE**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CodePilot FDE — AI Engineering Workflow & Codebase Migration Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{--bg:#060b16;--pane:#0d1730;--line:#1d2c4f;--tx:#dce6f5;--mut:#8ea3c7;--sky:#7cc4ff;--amb:#ffb547;--mint:#5ef0b8;--red:#ff6b7a;
+--h:'Bricolage Grotesque','Segoe UI',sans-serif;--b:'Instrument Sans','Segoe UI',sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+html{scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:400 17px/1.6 var(--b);overflow-x:hidden}
+h1,h2,h3{font-family:var(--h);line-height:1.08;margin:0}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+nav{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:14px 22px;backdrop-filter:blur(10px);background:rgba(6,11,22,.55)}
+nav b{font-family:var(--h);font-size:18px}
+nav b i{color:var(--amb);font-style:normal}
+.btn{font:600 16px var(--b);border:0;border-radius:999px;padding:13px 24px;cursor:pointer;background:var(--amb);color:#1a1100;transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,181,71,.35)}
+.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
+:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
+#hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden}
+#c3d{position:absolute;inset:0;width:100%;height:100%}
+#hero .wrap{position:relative;z-index:2;pointer-events:none}
+#hero .wrap>*{pointer-events:auto}
+.hero-in{max-width:640px;animation:rise 1.1s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(30px)}}
+h1{font-size:clamp(40px,7vw,78px);font-weight:800;letter-spacing:-.02em}
+h1 span{display:block;font-size:.34em;font-weight:500;color:var(--sky);letter-spacing:0;margin-top:18px;line-height:1.3}
+.lead{font-size:clamp(18px,2.2vw,21px);color:var(--mut);max-width:560px;margin:22px 0 30px}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+section.s{padding:96px 0}
+h2{font-size:clamp(30px,4.5vw,50px);font-weight:700;letter-spacing:-.015em;max-width:760px}
+.sub{color:var(--mut);max-width:620px;margin:16px 0 0}
+.grid{display:grid;gap:18px;margin-top:44px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(235px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:linear-gradient(160deg,var(--pane),#08112a);border:1px solid var(--line);border-radius:18px;padding:26px;transform-style:preserve-3d;transition:transform .25s,border-color .25s;will-change:transform}
+.card:hover{border-color:var(--sky)}
+.card h3{font-size:22px;margin:14px 0 8px}
+.card p{margin:0;color:var(--mut);font-size:16px}
+.ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:rgba(124,196,255,.12)}
+.flow{display:flex;gap:0;flex-wrap:wrap;margin-top:44px;align-items:stretch}
+.step{flex:1 1 150px;padding:20px 16px;border:1px solid var(--line);margin:-1px 0 0 -1px;background:var(--pane);position:relative}
+.step b{display:block;font-family:var(--h);font-size:18px;margin-bottom:4px}
+.step small{color:var(--mut);font-size:14px;line-height:1.4;display:block}
+.step.hum{border-color:var(--amb);box-shadow:inset 0 0 40px rgba(255,181,71,.12)}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0;margin-top:44px;border-top:1px solid var(--line)}
+.num{padding:28px 18px 8px 0}
+.num strong{font:800 clamp(40px,5vw,60px)/1 var(--h);color:var(--mint);display:block}
+.num span{color:var(--mut);font-size:15px;display:block;margin-top:8px;max-width:190px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:15px;background:var(--pane)}
+footer{padding:50px 0 70px;color:var(--mut);border-top:1px solid var(--line);font-size:15px}
+/* demo */
+#demo{position:fixed;inset:0;z-index:50;background:rgba(3,6,14,.92);backdrop-filter:blur(8px);display:none;overflow:auto;padding:max(18px,env(safe-area-inset-top,0px)) 18px max(18px,env(safe-area-inset-bottom,0px))}
+#demo.on{display:block;animation:rise .5s both}
+.dm{max-width:1060px;margin:0 auto;background:var(--pane);border:1px solid var(--line);border-radius:22px;padding:24px}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dh h3{font-size:24px}
+.x{background:none;border:1px solid var(--line);color:var(--tx);border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:18px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.tab{font:500 15px var(--b);padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--tx);cursor:pointer;text-align:left}
+.tab.on{border-color:var(--sky);background:rgba(124,196,255,.12)}
+.ask{background:#060b16;border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--mut);margin-bottom:18px}
+.ask q{color:var(--tx);quotes:none;font-weight:500}
+.dg{display:grid;grid-template-columns:230px 1fr;gap:20px}
+@media(max-width:760px){.dg{grid-template-columns:1fr}}
+.stackbox{height:290px;perspective:900px;display:grid;place-items:center;background:radial-gradient(circle at 50% 60%,rgba(124,196,255,.12),transparent 65%);border-radius:16px}
+.iso{position:relative;width:130px;height:130px;transform-style:preserve-3d;transform:rotateX(58deg) rotateZ(-35deg);animation:spin 18s linear infinite}
+@keyframes spin{to{transform:rotateX(58deg) rotateZ(325deg)}}
+.ly{position:absolute;inset:0;border:1.5px solid var(--line);border-radius:10px;background:rgba(13,23,48,.7);transform:translateZ(calc(var(--i)*26px - 60px));transition:all .5s;display:grid;place-items:center;font-size:20px}
+.ly.on{border-color:var(--sky);background:rgba(124,196,255,.25);box-shadow:0 0 28px rgba(124,196,255,.55)}
+.ly.done{border-color:var(--mint);background:rgba(94,240,184,.2)}
+.ly.hum.on{border-color:var(--amb);background:rgba(255,181,71,.3);box-shadow:0 0 28px rgba(255,181,71,.6)}
+.steps{list-style:none;margin:0 0 14px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.steps li{font-size:14px;padding:9px 11px;border-radius:10px;border:1px solid var(--line);color:var(--mut);transition:all .3s}
+.steps li.on{color:var(--tx);border-color:var(--sky);background:rgba(124,196,255,.12)}
+.steps li.done{color:var(--mint);border-color:rgba(94,240,184,.4)}
+.say{min-height:52px;font-size:18px;font-weight:500;margin:6px 0 14px}
+.diff{background:#060b16;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:13.5px/1.7 ui-monospace,Menlo,Consolas,monospace;min-height:122px;overflow-x:auto}
+.diff div{white-space:pre;opacity:0;transform:translateX(-8px);transition:all .4s}
+.diff div.in{opacity:1;transform:none}
+.diff .a{color:var(--mint);background:rgba(94,240,184,.08)}
+.diff .r{color:var(--red);background:rgba(255,107,122,.08)}
+.diff .n{color:var(--mut)}
+.meters{display:flex;gap:22px;flex-wrap:wrap;margin:14px 0;color:var(--mut);font-size:14px}
+.meters b{color:var(--tx);font:700 22px var(--h);display:block}
+.act{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pr{display:none;margin-top:14px;border:1px solid var(--mint);border-radius:14px;padding:16px;background:rgba(94,240,184,.08)}
+.pr.on{display:block;animation:pop .6s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{opacity:0;transform:perspective(600px) rotateX(-70deg) scale(.9)}}
+.pulse{animation:pl 1s infinite}
+@keyframes pl{50%{box-shadow:0 0 0 10px rgba(255,181,71,.0),0 0 24px 4px rgba(255,181,71,.6)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<nav><b>CodePilot<i>.</i>FDE</b><button class="btn" onclick="openDemo()">Try the live demo</button></nav>
 
-# CodePilot FDEAI Engineering Workflow & Codebase Migration Platform
+<header id="hero">
+<canvas id="c3d" aria-hidden="true"></canvas>
+<div class="wrap"><div class="hero-in">
+<h1>CodePilot FDE<span>AI Engineering Workflow &amp; Codebase Migration Platform</span></h1>
+<p class="lead">An AI teammate that reads a whole software project, makes the change you asked for, tests it, and hands a person a ready-to-approve fix. Hours of engineering work, done in seconds.</p>
+<div class="row"><button class="btn" onclick="openDemo()">Watch it work, live</button><a class="btn ghost" href="#what" style="text-decoration:none">How it works</a></div>
+</div></div>
+</header>
 
-An AI teammate that reads a whole software project, makes the change you asked for, tests it, and hands a person a ready-to-approve fix. Hours of engineering work, done in seconds.
+<section class="s" id="what"><div class="wrap">
+<h2>Companies spend huge amounts of engineer time on changes that are tedious, risky and repetitive.</h2>
+<p class="sub">Upgrading old code, chasing bugs after an outage, turning a feature request into working software. CodePilot takes these jobs on, and a person always makes the final call.</p>
+<div class="grid g4">
+<div class="card"><div class="ic">🔭</div><h3>Find</h3><p>Explores a repository and works out what is where, which parts depend on which, and what a change would touch.</p></div>
+<div class="card"><div class="ic">🔄</div><h3>Rewrite &amp; migrate</h3><p>Upgrades old code to modern standards across hundreds of files, consistently, without the boring manual slog.</p></div>
+<div class="card"><div class="ic">🚨</div><h3>Fix incidents</h3><p>Starts from an alert, finds the cause, writes the fix and proves it works before anyone is woken up.</p></div>
+<div class="card"><div class="ic">✨</div><h3>Build from a request</h3><p>Reads a plain-language feature request and turns it into working, tested code.</p></div>
+</div></div></section>
 
-[How it works](#what)
+<section class="s" style="background:#08112a"><div class="wrap">
+<h2>From request to pull request, with a human in the loop.</h2>
+<p class="sub">Every task follows the same safe path. The amber step is where a person reviews and decides.</p>
+<div class="flow">
+<div class="step"><b>Request</b><small>A task, bug alert or feature idea arrives</small></div>
+<div class="step"><b>Understand</b><small>Reads the code with syntax-tree analysis</small></div>
+<div class="step"><b>Plan &amp; edit</b><small>AI agents coordinate the changes</small></div>
+<div class="step"><b>Test</b><small>Runs the project's tests automatically</small></div>
+<div class="step hum"><b>Human approval</b><small>A person reviews before anything ships</small></div>
+<div class="step"><b>Pull request</b><small>Production-ready change opened on GitHub</small></div>
+</div></div></section>
 
-## Companies spend huge amounts of engineer time on changes that are tedious, risky and repetitive.
+<section class="s"><div class="wrap">
+<h2>Measured, not just demoed.</h2>
+<p class="sub">Results from evaluating the platform on real codebase tasks and agent runs.</p>
+<div class="nums">
+<div class="num"><strong data-n="50" data-s="+">0</strong><span>codebase tasks evaluated</span></div>
+<div class="num"><strong data-n="70" data-s="%">0</strong><span>less manual engineering effort</span></div>
+<div class="num"><strong data-n="90" data-s="%+">0</strong><span>of tasks completed successfully</span></div>
+<div class="num"><strong data-n="92" data-s="%">0</strong><span>accuracy validating tests</span></div>
+<div class="num"><strong data-n="20" data-s="s" data-p="&lt;">0</strong><span>average workflow time</span></div>
+<div class="num"><strong data-n="100" data-s="+">0</strong><span>agent executions monitored</span></div>
+</div></div></section>
 
-Upgrading old code, chasing bugs after an outage, turning a feature request into working software. CodePilot takes these jobs on, and a person always makes the final call.
+<section class="s" style="background:#08112a"><div class="wrap">
+<h2>Built so it can be trusted.</h2>
+<div class="grid g3">
+<div class="card"><div class="ic">📊</div><h3>Production observability</h3><p>OpenTelemetry, Prometheus and Grafana track every run: AI token cost, model failures, retries and rollout health.</p></div>
+<div class="card"><div class="ic">🧪</div><h3>Evaluation &amp; regression tests</h3><p>Each change is scored. Failures are analysed so the platform gets more reliable over time, not less.</p></div>
+<div class="card"><div class="ic">🧑‍💼</div><h3>People stay in charge</h3><p>Human-in-the-loop approvals mean the AI proposes and a person decides.</p></div>
+</div>
+<div class="chips" aria-label="Tech stack">
+<span class="chip">Python</span><span class="chip">TypeScript</span><span class="chip">FastAPI</span><span class="chip">LangGraph</span><span class="chip">GitHub API</span><span class="chip">Tree-sitter</span><span class="chip">PostgreSQL</span><span class="chip">Redis</span><span class="chip">OpenTelemetry</span><span class="chip">Prometheus</span><span class="chip">Grafana</span><span class="chip">Docker</span><span class="chip">GitHub Actions</span><span class="chip">LLM APIs</span>
+</div></div></section>
 
-🔭
+<section class="s"><div class="wrap">
+<h2>For recruiters: what this project shows.</h2>
+<div class="grid g3">
+<div class="card"><h3>AI agent engineering</h3><p>Multi-step agent workflows with LangGraph, code understanding through AST analysis, and real GitHub integration.</p></div>
+<div class="card"><h3>Backend &amp; systems</h3><p>FastAPI services backed by PostgreSQL and Redis, containerised with Docker and shipped through GitHub Actions.</p></div>
+<div class="card"><h3>Reliability mindset</h3><p>Evaluation, monitoring and approval gates designed in from the start, as production AI needs.</p></div>
+</div>
+<div class="row" style="margin-top:36px"><button class="btn" onclick="openDemo()">Run the demo</button></div>
+</div></section>
+<footer><div class="wrap">Built by Akash Patro · CodePilot FDE</div></footer>
 
-### Find
+<div id="demo" role="dialog" aria-modal="true" aria-label="CodePilot live demo"><div class="dm">
+<div class="dh"><div><h3>CodePilot live demo</h3><div style="color:var(--mut);font-size:15px">Pick a job, press Start, and watch the AI teammate work.</div></div><button class="x" onclick="closeDemo()" aria-label="Close demo">✕</button></div>
+<div class="tabs" id="tabs"></div>
+<div class="ask" id="ask"></div>
+<div class="dg">
+<div class="stackbox"><div class="iso" id="iso"></div></div>
+<div>
+<ul class="steps" id="steps"></ul>
+<div class="say" id="say">Ready when you are.</div>
+<div class="diff" id="diff"></div>
+<div class="meters"><div><b id="mt">0s</b>time taken</div><div><b id="mk">0/0</b>tests passing</div><div><b id="mc">$0.00</b>AI cost</div></div>
+<div class="act"><button class="btn" id="go" onclick="run()">Start</button><button class="btn pulse" id="ok" style="display:none" onclick="approve()">Approve &amp; open pull request</button></div>
+<div class="pr" id="pr"></div>
+</div></div></div></div>
 
-Explores a repository and works out what is where, which parts depend on which, and what a change would touch.
-
-🔄
-
-### Rewrite & migrate
-
-Upgrades old code to modern standards across hundreds of files, consistently, without the boring manual slog.
-
-🚨
-
-### Fix incidents
-
-Starts from an alert, finds the cause, writes the fix and proves it works before anyone is woken up.
-
-✨
-
-### Build from a request
-
-Reads a plain-language feature request and turns it into working, tested code.
-
-## From request to pull request, with a human in the loop.
-
-Every task follows the same safe path. The amber step is where a person reviews and decides.
-
-**Request**A task, bug alert or feature idea arrives
-
-**Understand**Reads the code with syntax-tree analysis
-
-**Plan & edit**AI agents coordinate the changes
-
-**Test**Runs the project's tests automatically
-
-**Human approval**A person reviews before anything ships
-
-**Pull request**Production-ready change opened on GitHub
-
-## Measured, not just demoed.
-
-Results from evaluating the platform on real codebase tasks and agent runs.
-
-**0**codebase tasks evaluated
-
-**0**less manual engineering effort
-
-**0**of tasks completed successfully
-
-**0**accuracy validating tests
-
-**0**average workflow time
-
-**0**agent executions monitored
-
-## Built so it can be trusted.
-
-📊
-
-### Production observability
-
-OpenTelemetry, Prometheus and Grafana track every run: AI token cost, model failures, retries and rollout health.
-
-🧪
-
-### Evaluation & regression tests
-
-Each change is scored. Failures are analysed so the platform gets more reliable over time, not less.
-
-🧑‍💼
-
-### People stay in charge
-
-Human-in-the-loop approvals mean the AI proposes and a person decides.
-
-PythonTypeScriptFastAPILangGraphGitHub APITree-sitterPostgreSQLRedisOpenTelemetryPrometheusGrafanaDockerGitHub ActionsLLM APIs
-
-## For recruiters: what this project shows.
-
-### AI agent engineering
-
-Multi-step agent workflows with LangGraph, code understanding through AST analysis, and real GitHub integration.
-
-### Backend & systems
-
-FastAPI services backed by PostgreSQL and Redis, containerised with Docker and shipped through GitHub Actions.
-
-### Reliability mindset
-
-Evaluation, monitoring and approval gates designed in from the start, as production AI needs.
-
-Built by Akash Patro · CodePilot FDE
-
-### CodePilot live demo
-
-Pick a job, press Start, and watch the AI teammate work.
-
-Ready when you are.
-
-**0s**time taken
-
-**0/0**tests passing
-
-**$0.00**AI cost
+<script>
+/* ---------- 3D hero ---------- */
+(function(){
+if(typeof THREE==='undefined')return;
+var cv=document.getElementById('c3d'),R=matchMedia('(prefers-reduced-motion:reduce)').matches;
+var r=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});r.setPixelRatio(Math.min(devicePixelRatio,2));
+var s=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,1,.1,100);cam.position.z=11;
+var g=new THREE.Group();s.add(g);
+var core=new THREE.Mesh(new THREE.IcosahedronGeometry(1.5,1),new THREE.MeshBasicMaterial({color:0x7cc4ff,wireframe:true}));g.add(core);
+var gem=new THREE.Mesh(new THREE.IcosahedronGeometry(.7,0),new THREE.MeshBasicMaterial({color:0xffb547}));g.add(gem);
+[2.3,3.1].forEach(function(rad,i){var t=new THREE.Mesh(new THREE.TorusGeometry(rad,.012,8,120),new THREE.MeshBasicMaterial({color:i?0x5ef0b8:0x7cc4ff,transparent:true,opacity:.6}));t.rotation.x=1.2+i*.5;t.rotation.y=i;g.add(t)});
+var files=[],geo=new THREE.BoxGeometry(.2,.26,.04);
+for(var i=0;i<110;i++){var m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0x31457a}));
+var u=Math.acos(2*Math.random()-1),v=Math.random()*6.283,d=3.6+Math.random()*2.6;
+m.position.set(d*Math.sin(u)*Math.cos(v),d*Math.sin(u)*Math.sin(v),d*Math.cos(u));m.userData={d:d,ph:Math.random()*6.283};m.lookAt(0,0,0);g.add(m);files.push(m)}
+var pts=new Float32Array(600*3);for(i=0;i<pts.length;i++)pts[i]=(Math.random()-.5)*40;
+var pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pts,3));
+s.add(new THREE.Points(pg,new THREE.PointsMaterial({size:.04,color:0x8ea3c7})));
+var mx=0,my=0;addEventListener('pointermove',function(e){mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
+function rs(){var w=cv.clientWidth,h=cv.clientHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();g.position.x=w>800?3.4:0;g.position.y=w>800?0:2.4;g.scale.setScalar(w>800?1:.7)}
+addEventListener('resize',rs);rs();
+var c0=new THREE.Color(0x31457a),c1=new THREE.Color(0x5ef0b8),t=0;
+function f(){t+=R?0:.012;g.rotation.y=t*.35+mx*.6;g.rotation.x=my*.4+Math.sin(t*.4)*.1;
+core.rotation.x=t;gem.rotation.y=-t*1.5;gem.scale.setScalar(1+Math.sin(t*3)*.08);
+files.forEach(function(m){var w=Math.sin(t*1.6-m.userData.d*1.3+m.userData.ph*.2);var k=Math.max(0,w);
+m.material.color.copy(c0).lerp(c1,k);var q=m.userData.d*(1-k*.18);m.position.setLength(q)});
+r.render(s,cam);if(!R)requestAnimationFrame(f)}
+f();
+})();
+/* tilt cards */
+document.querySelectorAll('.card').forEach(function(c){c.addEventListener('pointermove',function(e){var b=c.getBoundingClientRect(),x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;c.style.transform='perspective(700px) rotateY('+x*10+'deg) rotateX('+-y*10+'deg)'});c.addEventListener('pointerleave',function(){c.style.transform=''})});
+/* counters */
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;io.unobserve(e.target);var el=e.target,n=+el.dataset.n,p=el.dataset.p||'',sf=el.dataset.s,st=performance.now();
+(function k(now){var q=Math.min(1,(now-st)/1400);el.textContent=p+Math.round(n*(1-Math.pow(1-q,3)))+sf;if(q<1)requestAnimationFrame(k)})(st)})},{threshold:.6});
+document.querySelectorAll('[data-n]').forEach(function(e){io.observe(e)});
+/* ---------- demo ---------- */
+var ST=[['🔭','Reading the project'],['🧭','Making a plan'],['✍️','Writing the change'],['🧪','Running tests'],['🧑‍💼','Waiting for a human'],['🚀','Opening pull request']];
+var SC=[
+{tab:'🔄 Upgrade old code',ask:'“Our payment module uses outdated code. Upgrade it everywhere.”',pr:'Modernise payment module (38 files)',tests:41,cost:.18,
+say:['Scanning 214 files and mapping which ones use the old approach…','Found 38 files to change. Planning the safest order, one module at a time.','Rewriting the old code into the modern version, file by file.','Running all 41 of the project’s safety checks…','Everything passes. A person should review this before it ships.','Pull request opened with a clear summary of what changed and why.'],
+diff:[['n','payments/client.py'],['r','- resp = urllib2.urlopen(url)'],['r','- data = json.loads(resp.read())'],['a','+ resp = httpx.get(url, timeout=10)'],['a','+ data = resp.json()'],['n','…and 37 more files, same pattern']]},
+{tab:'🚨 Fix a live bug',ask:'ALERT: “Checkout page crashing for some customers since 9:02am.”',pr:'Fix crash when cart is empty at checkout',tests:27,cost:.11,
+say:['Reading the alert and the error logs from 9:02am…','Cause found: checkout assumes a cart always has items. Planning a safe fix.','Adding a check so an empty cart no longer crashes the page.','Running 27 checks, including a new one that recreates the crash…','The crash is fixed and nothing else broke. Needs a human OK.','Fix delivered as a pull request, linked to the original alert.'],
+diff:[['n','checkout/cart.py'],['r','- total = cart.items[0].price'],['a','+ if not cart.items:'],['a','+     return empty_checkout()'],['a','+ total = cart.items[0].price'],['n','+ new test: empty cart no longer crashes']]},
+{tab:'✨ Build a feature',ask:'“Let shoppers save an item for later from the product page.”',pr:'Add “Save for later” to product page',tests:33,cost:.22,
+say:['Reading the request and finding the product page code…','Plan: a new button, a saved-items list, and a small database table.','Writing the button, the saving logic and the list screen.','Running 33 checks on the new feature…','Feature works end to end. A person approves before release.','Feature delivered as a pull request, ready to review.'],
+diff:[['n','product/page.tsx'],['a','+ <Button onClick={saveForLater}>'],['a','+   Save for later'],['a','+ </Button>'],['a','+ POST /api/saved-items'],['n','+ database table: saved_items']]}];
+var cur=0,busy=false,tm=[],$=function(i){return document.getElementById(i)};
+function build(){$('tabs').innerHTML=SC.map(function(s,i){return '<button class="tab'+(i==cur?' on':'')+'" onclick="pick('+i+')">'+s.tab+'</button>'}).join('');
+$('ask').innerHTML='Task given to CodePilot: <q>'+SC[cur].ask+'</q>';
+$('steps').innerHTML=ST.map(function(s,i){return '<li id="s'+i+'">'+s[0]+' '+s[1]+'</li>'}).join('');
+$('iso').innerHTML=ST.map(function(s,i){return '<div class="ly'+(i==4?' hum':'')+'" id="l'+i+'" style="--i:'+i+'">'+s[0]+'</div>'}).join('');
+$('say').textContent='Ready when you are.';$('diff').innerHTML='';$('pr').className='pr';$('pr').innerHTML='';
+$('mt').textContent='0s';$('mk').textContent='0/'+SC[cur].tests;$('mc').textContent='$0.00';$('go').style.display='';$('go').textContent='Start';$('ok').style.display='none'}
+function pick(i){if(busy)return;cur=i;build()}
+function mark(i){ST.forEach(function(_,j){$('s'+j).className=j<i?'done':j==i?'on':'';$('l'+j).className='ly'+(j==4?' hum':'')+(j<i?' done':j==i?' on':'')})}
+function T(f,ms){tm.push(setTimeout(f,ms))}
+function run(){if(busy)return;busy=true;build();$('go').style.display='none';var sc=SC[cur],t0=Date.now(),clk=setInterval(function(){$('mt').textContent=Math.min(19,(Date.now()-t0)/1000*3.2).toFixed(0)+'s'},200);tm.push(clk);
+[0,1,2,3,4].forEach(function(i){T(function(){mark(i);$('say').textContent=sc.say[i];
+if(i==2){sc.diff.forEach(function(d,k){T(function(){var e=document.createElement('div');e.className=d[0];e.textContent=d[1];$('diff').appendChild(e);requestAnimationFrame(function(){e.classList.add('in')})},k*420)})}
+if(i==3){var n=0,iv=setInterval(function(){n+=Math.ceil(sc.tests/12);if(n>=sc.tests){n=sc.tests;clearInterval(iv)}$('mk').textContent=n+'/'+sc.tests},140);tm.push(iv)}
+$('mc').textContent='$'+(sc.cost*(i+1)/5).toFixed(2);
+if(i==4){clearInterval(clk);$('mt').textContent='18s';$('ok').style.display=''}},i*1900)})}
+function approve(){var sc=SC[cur];$('ok').style.display='none';mark(5);$('say').textContent=SC[cur].say[5];
+T(function(){mark(6);busy=false;$('go').style.display='';$('go').textContent='Run again';$('pr').innerHTML='<b style="color:var(--mint)">✔ Pull request #'+(100+cur*7+14)+' opened on GitHub</b><br>'+sc.pr+'<br><span style="color:var(--mut);font-size:14px">'+sc.tests+'/'+sc.tests+' tests passed · approved by a human · 18s total</span>';$('pr').className='pr on'},1200)}
+function openDemo(){$('demo').classList.add('on');document.body.style.overflow='hidden';build()}
+function closeDemo(){tm.forEach(function(t){clearTimeout(t);clearInterval(t)});tm=[];busy=false;$('demo').classList.remove('on');document.body.style.overflow=''}
+addEventListener('keydown',function(e){if(e.key==='Escape')closeDemo()});
+</script>
+</body>
+</html>
