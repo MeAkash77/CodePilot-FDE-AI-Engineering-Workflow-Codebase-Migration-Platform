@@ -1,147 +1,360 @@
-# FDEOps
+<div align="center">
 
-**Skills for forward deployed engineers, used through your AI coding agent.**
+# 🛩️ CodePilot FDE
 
-[![CI](https://github.com/suboss87/fdeops/actions/workflows/validate.yml/badge.svg?branch=Main)](https://github.com/suboss87/fdeops/actions/workflows/validate.yml)
-[![npm version](https://img.shields.io/npm/v/fdeops?logo=npm)](https://www.npmjs.com/package/fdeops)
-[![npm downloads](https://img.shields.io/npm/dm/fdeops?logo=npm)](https://www.npmjs.com/package/fdeops)
-[![License](https://img.shields.io/github/license/suboss87/fdeops)](LICENSE)
-![Focus: Forward deployed engineering](https://img.shields.io/badge/focus-forward%20deployed%20engineering-0f766e?style=flat-square)
+### AI Engineering Workflow & Codebase Migration Platform
 
-<a name="why-use-it"></a>
+**Give it a task. It reads the whole codebase, makes the change, tests it, and hands a human a production-ready pull request.**
 
-FDEOps helps you turn a customer problem into a working system: clarify the goal, choose an architecture, build and integrate, then verify the result and prepare for rollout.
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-agents-1C3C3C)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-traced-425CC7?logo=opentelemetry&logoColor=white)
+![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
 
-Use a task skill on its own, or let `fde` coordinate work across strategy, architecture and engineering. Customer memory keeps decisions, evidence and next steps available between sessions.
+[Live demo](#-live-demo) · [How it works](#-how-it-works) · [Results](#-results) · [Quick start](#-quick-start) · [Architecture](#-architecture) · [Roadmap](#-roadmap)
 
-I built FDEOps around design thinking, first-principles thinking and systems thinking: understand the people doing the work, question assumptions, and examine how a change affects the whole system. I turned my field approach and experience into skills that help your AI coding agent investigate, build and verify, with customer memory to carry the work forward.
+</div>
 
-[Get started](#quick-start) · [What it helps with](#three-things-it-helps-with) · [Choose a skill](#task-skills) · [Data boundaries](#your-records-your-control) · [Docs](docs/README.md)
+---
 
-## Quick start
+## 📌 Table of contents
 
-### Let `fde` coordinate a customer project
+1. [Overview](#-overview)
+2. [Live demo](#-live-demo)
+3. [What it does](#-what-it-does)
+4. [How it works](#-how-it-works)
+5. [Results](#-results)
+6. [Architecture](#-architecture)
+7. [Observability and evaluation](#-observability-and-evaluation)
+8. [Tech stack](#-tech-stack)
+9. [Quick start](#-quick-start)
+10. [Configuration](#-configuration)
+11. [Usage examples](#-usage-examples)
+12. [Project structure](#-project-structure)
+13. [Testing](#-testing)
+14. [Safety and human oversight](#-safety-and-human-oversight)
+15. [Roadmap](#-roadmap)
+16. [Contributing](#-contributing)
+17. [License](#-license)
+18. [Author](#-author)
 
-Install in the terminal where your AI coding agent runs, then select your agent:
+---
 
-```bash
-npx skills add suboss87/fdeops --skill fde
-```
+## 🔭 Overview
 
-Select `fde` in your agent, or use `@fde` where supported:
+Engineering teams lose enormous amounts of time to work that is important but repetitive: upgrading old code across hundreds of files, chasing the root cause of an outage, or turning a feature request into working software.
 
-```text
-@fde this is client01. Their support team reads incoming requests,
-checks internal documents, then assigns each request to another team.
-Help me prepare for the first meeting. Here is the brief: ...
-```
+**CodePilot FDE** is an AI-native engineering workflow platform that automates that work end to end. It uses multi-step AI agents orchestrated with **LangGraph**, understands code structurally through **AST analysis (Tree-sitter)**, works directly with repositories through the **GitHub API**, and validates every change by running the project's own tests before a person ever looks at it.
 
-The coordinator selects the relevant method as the work changes. Customer context guides the plan, code changes and verification; the record carries it between sessions. You do not need to learn CLI commands.
+The goal is not to replace engineers. It is to give them a pull request that is already 90% of the way there.
 
-### Use one skill for one task
+> **In one sentence:** CodePilot turns a task, an alert or a feature request into a tested pull request that a human approves.
 
-```bash
-npx skills add suboss87/fdeops --skill build
-```
+---
 
-Then ask your agent:
+## 🎬 Live demo
 
-```text
-Use FDEOps build to add a manual-review fallback to this routing service.
-Here are the agreed behavior, repository and checks: ...
-```
+> 📍 Add your hosted demo link and a screen recording here.
 
-Each task skill includes the instructions it needs. Use `build` with supplied project context without creating a customer record or installing the coordinator.
-
-<details>
-<summary>Installation requirements and alternatives</summary>
-
-These installation commands use Node.js and Git; the optional record CLI requires Node.js 18+. See [installation and upgrades](docs/install.md) for host-specific invocation, the full pack and alternatives. Installing `fde` includes all underlying instructions, but does not add the 35 separate task names to your agent's menu.
-
-</details>
-
-**See it in action:** `npx fdeops demo` turns fictional meeting notes into a review and a fieldbook, a browser view of the customer record. No AI model is called. The demo uses Node.js 18+ and Git; `npx` may download the package. It creates or resets its separate `.demo` workspace. [Five-minute walkthrough](docs/USAGE.md#new-here-5-minutes).
-
-## Three things it helps with
-
-### 1. Strategy: decide what is worth building
-
-Turn the customer’s request into a problem to investigate, a measure of success and a bounded scope. Identify who decides and what evidence would change the plan.
-
-Use [discover](skills/discover/SKILL.md), [who-decides](skills/who-decides/SKILL.md) and [scope](skills/scope/SKILL.md).
-
-### 2. Architecture: choose an approach that fits
-
-Inspect the existing system, compare options against customer constraints and plan a small slice that tests the design. Make dependencies, tradeoffs and failure paths explicit.
-
-Use [options](skills/options/SKILL.md), [plan](skills/plan/SKILL.md) and [integrate](skills/integrate/SKILL.md).
-
-### 3. Engineering: build, verify and hand over
-
-Implement the change, debug failures and test the agreed behavior. Report what passed on which revision and environment, what remains unproven and what the operating team needs before rollout.
-
-Use [build](skills/build/SKILL.md), [debug](skills/debug/SKILL.md), [review](skills/review/SKILL.md), [ship](skills/ship/SKILL.md) and [handoff](skills/handoff/SKILL.md). A passing local test does not establish deployment or customer acceptance. [Verification and its limits](docs/verification.md).
-
-<a name="keep-a-customer-record"></a>
-<a name="how-skills-work"></a>
-
-For ongoing work, a local Markdown record at `~/fde-engagements/<customer>/.fde/` carries decisions, evidence and next steps between sessions. The coordinator retrieves relevant context and prepares consequential updates for your review. Use [debrief](skills/debrief/SKILL.md) after meetings and [switch-clients](skills/switch-clients/SKILL.md) when changing customers. [How records work](docs/USAGE.md).
-
-## Choose a skill
-
-<a name="task-skills"></a>
-
-**35 task skills + one coordinator, `fde`**. Each task skill works on its own; the coordinator includes all underlying methods.
-
-| Work in front of you | Start with |
+| Resource | Link |
 |---|---|
-| An unclear customer request | `brief`, `discover` |
-| Unclear ownership or access | `who-decides`, `earn-trust` |
-| A decision about scope or approach | `scope`, `options`, `plan` |
-| An implementation or system connection | `build`, `integrate` |
-| A failure or a result to verify | `debug`, `review`, `qa`, `evaluate` |
-| A release or operating handover | `ship`, `runbook`, `handoff` |
-| Meeting notes or a customer update | `debrief`, `readout` |
+| Interactive demo site | `https://<your-demo-url>` |
+| Walkthrough video | `https://<your-video-url>` |
+| Example pull request | `https://github.com/<you>/<repo>/pull/<n>` |
 
-Start with the task you need, or let `fde` select it. `dashboard` works with saved records; `debrief` can review supplied notes and return a draft. Each skill explains the context it needs. [Full skill catalog](docs/skills-reference.md).
+<!-- Tip: add a GIF here, e.g. ![CodePilot demo](docs/assets/demo.gif) -->
 
-<a name="what-a-working-day-looks-like"></a>
+---
 
-<details>
-<summary><strong>View your customer records in the fieldbook</strong></summary>
+## ✨ What it does
 
-The fieldbook is a read-only browser view of next actions, risks, evidence gaps and results awaiting acceptance.
+CodePilot supports four core workflows:
 
-![Fieldbook showing fictional customer records](media/fieldbook-preview.png)
+| Workflow | You provide | CodePilot delivers |
+|---|---|---|
+| 🔭 **Repository discovery** | A repository | A map of structure, dependencies and the blast radius of a proposed change |
+| 🔄 **Refactoring & migration** | A goal such as "move every file off the deprecated client" | Consistent changes across many files with tests passing |
+| 🚨 **Incident-to-fix** | An alert or error report | Root-cause analysis, a fix, and a regression test that reproduces the issue |
+| ✨ **Spec-to-implementation** | A plain-language feature request | Working, tested code and a pull request summary |
 
-```bash
-npx fdeops dashboard --all --open
+Across all four, the output is a **production-ready pull request** with automated test validation and a clear explanation of what changed and why.
+
+---
+
+## ⚙️ How it works
+
+```mermaid
+flowchart LR
+    A[Task / Alert / Spec] --> B[Understand<br/>AST analysis]
+    B --> C[Plan<br/>LangGraph agents]
+    C --> D[Edit<br/>multi-file changes]
+    D --> E[Validate<br/>run tests]
+    E -->|fail| C
+    E -->|pass| F{{Human approval}}
+    F -->|approve| G[Pull request on GitHub]
+    F -->|reject| C
 ```
 
-Copy an action into your agent to continue. Regenerate the view after record updates. [Daily use](docs/USAGE.md).
+1. **Understand.** Tree-sitter parses the repository into syntax trees so the agents reason about functions, classes and call relationships rather than raw text.
+2. **Plan.** A LangGraph agent graph breaks the task into ordered, low-risk steps.
+3. **Edit.** Agents apply the changes across files, keeping style and patterns consistent.
+4. **Validate.** The project's test suite runs automatically. Failures loop back to planning with the failure context.
+5. **Human approval.** A person reviews the proposed change before anything is opened or merged.
+6. **Pull request.** CodePilot opens a GitHub pull request with a summary, the diff and test results.
 
-</details>
+---
 
-<a name="your-records-your-control"></a>
-<a name="your-data-stays-yours"></a>
+## 📊 Results
 
-> [!NOTE]
-> **Use FDEOps with the setup that fits your work.** Try individual skills with sample data, or use a customer-approved local model or LLM provider for customer projects, including regulated and production work.
->
-> Customer records stay in local files. The FDEOps CLI makes no network calls; your AI coding agent’s settings determine what it sends to a model provider. Use data approved for that setup.
->
-> [Setup guidance](SECURITY.md#before-customer-work) · [Privacy and masking](PRIVACY.md) · [Local-model results](docs/verification.md#local-model-results)
+Measured across evaluated codebase tasks and monitored agent runs:
 
-## Who this is for
+| Metric | Result |
+|---|---|
+| Codebase tasks evaluated | **50+** |
+| Reduction in manual engineering effort | **70%** |
+| Task success rate | **90%+** |
+| Test-validation accuracy | **92%** |
+| Average workflow latency | **< 20 seconds** |
+| Agent executions monitored | **100+** |
 
-Forward deployed engineers, consultants and delivery teams working across customer meetings, codebases and operating environments. Bring your existing tools, access and customer agreements. Start with one task or use `fde` throughout the engagement.
+> 📝 **Methodology:** document here how each figure was measured (task set, definition of "success", how effort reduction was estimated, hardware and model used). Recruiters and reviewers will look for this. See [`docs/evaluation.md`](docs/evaluation.md).
 
-## Go deeper
+---
 
-[Install or upgrade](docs/install.md) · [Daily use](docs/USAGE.md) · [Worked examples](examples/) · [Skill catalog](docs/skills-reference.md) · [Source connections](mcp/recipes/) · [Repository layout](docs/REPO_LAYOUT.md) · [Verification](docs/verification.md) · [Contribute](CONTRIBUTING.md)
+## 🏗️ Architecture
 
-Built and maintained by [Subash Natarajan](https://www.linkedin.com/in/subashn/). [Issues](https://github.com/suboss87/fdeops/issues) · [Discussions](https://github.com/suboss87/fdeops/discussions).
+```mermaid
+flowchart TB
+    subgraph Client
+      UI[TypeScript UI / CLI]
+    end
+    subgraph Backend
+      API[FastAPI service]
+      ORCH[LangGraph orchestrator]
+      AST[Tree-sitter analysis]
+      Q[(Redis<br/>queue + cache)]
+      DB[(PostgreSQL<br/>runs, results, evals)]
+    end
+    subgraph External
+      GH[GitHub API]
+      LLM[LLM APIs]
+    end
+    subgraph Observability
+      OT[OpenTelemetry]
+      PR[Prometheus]
+      GF[Grafana]
+    end
+    UI --> API --> ORCH
+    ORCH --> AST
+    ORCH --> LLM
+    ORCH --> GH
+    API --> Q
+    ORCH --> DB
+    API --> OT --> PR --> GF
+```
 
-## License
+**Design principles**
 
-[MIT](LICENSE). Use FDEOps in your customer work.
+- **Structure over text.** Code is understood through syntax trees, which makes large refactors safer.
+- **Validate before trust.** No change reaches a human without passing the project's tests.
+- **Humans decide.** Approval gates sit between AI output and the repository.
+- **Everything is measured.** Every run is traced, scored and costed.
+
+---
+
+## 📈 Observability and evaluation
+
+Production AI needs more than a good demo. CodePilot instruments every agent run:
+
+- **Tracing:** OpenTelemetry spans for each workflow stage and model call.
+- **Metrics:** Prometheus counters and histograms for latency, success rate, retries and token usage.
+- **Dashboards:** Grafana views for token cost, model failures, retries and rollout health.
+- **Regression testing:** a fixed evaluation set re-run on every change to prompts, models or agents.
+- **Failure analysis:** failed runs are categorised so recurring causes can be fixed.
+- **Human-in-the-loop:** approval outcomes are recorded and fed back into evaluation.
+
+---
+
+## 🧰 Tech stack
+
+| Layer | Technologies |
+|---|---|
+| Languages | Python, TypeScript |
+| API | FastAPI |
+| Agent orchestration | LangGraph, LLM APIs |
+| Code analysis | Tree-sitter (AST) |
+| Source control integration | GitHub API |
+| Data | PostgreSQL, Redis |
+| Observability | OpenTelemetry, Prometheus, Grafana |
+| Delivery | Docker, GitHub Actions |
+
+---
+
+## 🚀 Quick start
+
+> ⚠️ Replace the commands and variable names below with the ones from your repository.
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+
+- Docker and Docker Compose
+- A GitHub token with repository access
+- An API key for your LLM provider
+
+### Run with Docker
+
+```bash
+git clone https://github.com/<you>/codepilot-fde.git
+cd codepilot-fde
+cp .env.example .env        # then fill in your keys
+docker compose up --build
+```
+
+The API is then available at `http://localhost:8000` (interactive docs at `/docs`).
+
+### Run locally
+
+```bash
+# Backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+
+# Frontend
+cd web && npm install && npm run dev
+```
+
+---
+
+## 🔧 Configuration
+
+| Variable | Purpose |
+|---|---|
+| `GITHUB_TOKEN` | Access to the target repositories |
+| `LLM_API_KEY` | Credentials for the model provider |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `REDIS_URL` | Redis connection string |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Where traces are sent |
+
+Never commit real secrets. Use `.env` locally and GitHub Actions secrets in CI.
+
+---
+
+## 💡 Usage examples
+
+**Migrate a codebase**
+
+```bash
+codepilot run --repo <owner>/<repo> \
+  --task "Replace the deprecated HTTP client with the modern one everywhere"
+```
+
+**Fix an incident**
+
+```bash
+codepilot run --repo <owner>/<repo> \
+  --incident "Checkout crashes when the cart is empty" --logs ./error.log
+```
+
+**Build from a spec**
+
+```bash
+codepilot run --repo <owner>/<repo> \
+  --spec "Add a 'Save for later' button to the product page"
+```
+
+Each command ends with a pending approval. After you approve, CodePilot opens the pull request.
+
+---
+
+## 🗂️ Project structure
+
+> Update to match your actual layout.
+
+```text
+codepilot-fde/
+├── app/                # FastAPI service
+│   ├── agents/         # LangGraph agent graphs
+│   ├── analysis/       # Tree-sitter / AST tooling
+│   ├── github/         # GitHub API integration
+│   └── observability/  # OpenTelemetry setup
+├── web/                # TypeScript front end
+├── evals/              # Evaluation tasks and regression suite
+├── deploy/             # Docker, Prometheus and Grafana config
+├── docs/               # Architecture and evaluation notes
+└── .github/workflows/  # CI pipelines
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+pytest                     # unit and integration tests
+python -m evals.run        # evaluation suite and regression checks
+```
+
+Continuous integration runs tests and the evaluation suite on every pull request through GitHub Actions.
+
+---
+
+## 🛡️ Safety and human oversight
+
+- Changes are proposed as **pull requests**, never pushed directly to protected branches.
+- A **human approval** step is required before a pull request is opened.
+- Tests must pass before a change reaches review.
+- Token spend, retries and failures are visible so runaway behaviour is caught early.
+- Credentials are read from the environment and are never logged.
+
+---
+
+## 🗺️ Roadmap
+
+- [x] Repository discovery and AST analysis
+- [x] Refactoring and migration workflow
+- [x] Incident-to-fix workflow
+- [x] Spec-to-implementation workflow
+- [x] Evaluation suite and observability dashboards
+- [ ] Support for more languages
+- [ ] Parallel multi-repository migrations
+- [ ] Cost-aware model routing
+- [ ] Slack and Jira triggers
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome.
+
+1. Fork the repository
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Commit with a clear message and add tests
+4. Open a pull request describing the change
+
+---
+
+## 📄 License
+
+Distributed under the license in [`LICENSE`](LICENSE). Choose and add one before publishing.
+
+---
+
+## 👤 Author
+
+**Akash Patro**
+AI & ML Developer · Jamshedpur, India
+
+- GitHub: `https://github.com/<your-username>`
+- LinkedIn: `https://linkedin.com/in/<your-handle>`
+
+<div align="center">
+
+If this project helped you, consider giving it a ⭐
+
+</div>
